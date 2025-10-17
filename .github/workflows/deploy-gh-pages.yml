@@ -3,6 +3,7 @@ name: Build and Deploy to GitHub Pages (Pages artifact flow)
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 # Use minimal permissions ( Pages deployment requires pages: write and id-token )
 permissions:
@@ -13,6 +14,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -39,6 +43,12 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
         id: deploy
